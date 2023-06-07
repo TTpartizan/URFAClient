@@ -1,21 +1,49 @@
 {
     "name": "k-shym/urfa-client",
     "description": "Universal PHP client billing system NetUp UTM5 based api.xml",
-    "version": "1.0.10",
+    "version": "2.0.2",
     "type": "library",
+    "keywords": [
+        "utm5"
+    ],
     "license": "GPL-3.0",
     "authors": [
         {
             "name": "Konstantin Shum",
-            "email": "ks.shym@gmail.com",
-            "homepage": "http://www.shym.su",
+            "email": "k.shym@ya.ru",
+            "homepage": "http://www.shum.su",
             "role": "Developer"
         }
     ],
-    "require": {
-        "php": ">=5.3.3"
+    "support": {
+        "issues": "https://github.com/k-shym/URFAClient/issues"
     },
+    "require": {
+        "php": ">=5.4",
+        "ext-json": "*",
+        "ext-openssl": "*",
+        "ext-SimpleXML": "*",
+        "ext-bcmath": "*",
+        "ext-filter": "*",
+        "ext-hash": "*"
+    },
+    "require-dev": {
+        "php": ">=7.3",
+        "ext-xdebug": "*",
+        "phpunit/phpunit": "9.*",
+        "squizlabs/php_codesniffer": "3.*"
+    },
+    "bin": [
+        "bin/urfaclient"
+    ],
     "autoload": {
-        "files": ["init.php"]
+        "psr-4": {
+            "URFAClient\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Tests\\": "tests/"
+        }
     }
 }

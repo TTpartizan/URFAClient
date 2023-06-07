@@ -1,49 +1,49 @@
-URFAClient 1.0.10
+[![PHP Version Require](https://badgen.net/packagist/php/k-shym/urfa-client/dev-main?color=purple)](https://packagist.org/packages/k-shym/urfa-client) [![Latest Version](https://badgen.net/packagist/v/k-shym/urfa-client/latest)](https://packagist.org/packages/k-shym/urfa-client) [![Total Downloads](https://badgen.net/packagist/dt/k-shym/urfa-client)](https://packagist.org/packages/k-shym/urfa-client)
+
+URFAClient
 ==========
 
 Универсальный PHP клиент для биллинговой системы NetUp UTM5 на основе api.xml
 
 ## Установка (composer)
-```
-{
-    "require":{
-        "k-shym/urfa-client": "1.0.*"
-    }
-}
+```bash
+composer require k-shym/urfa-client "^2.0"
 ```
 
 ## Зависимости
-- UTM 5.2.1-008+
-- PHP 5.3+
-- Bcmath
-- Filter
-- Hash
-- OpenSSL
-- SimpleXML
+- UTM 5.2.1-008 >=
+- PHP 5.4 >=
+- Ext: JSON, OpenSSL, SimpleXML, Bcmath, Hash, Filter
 
-## Описание файлов
-- URFAClient - главный класс библиотеки
-- URFAClient_API - объект предоставляет обращение к функциям из api.xml
-- URFAClient_Connection - объект соединения с ядром UTM5
-- URFAClient_Packet - объект для подготовки получения/отправки бинарных данных ядру
-- URFAClient_Collector - сборщик информации для класса API
-- URFAClient_Log - журнал с собранными данными
-- admin.crt - сертификат для вызова админских функций
-- api.xml - файл с описанием api ядра UTM5
+## Описание параметров
+| option    | default            | описание                                                                                                                                          |
+|-----------|--------------------|---------------------------------------------------------------------------------------------------------------------------------------------------|
+| login*    | —                  | логин администратора или пользователя                                                                                                             |
+| password* | —                  | пароль администратора или пользователя соответственно                                                                                             |
+| address*  | —                  | адрес ядра UTM5                                                                                                                                   |
+| port      | **11758**          | порт ядра UTM5                                                                                                                                    |
+| timeout   | **30**             | время ожидания ответа от сервера                                                                                                                  |
+| protocol  | **auto**           | **ssl** или **tls** (доступно с версии UTM-5.3-002-update16) или **auto** (доступно с версии UTM-5.3-005-update2, работает с OpenSSL 1.1)         |
+| admin     | **true**           | указываем какой пользователь подключается, если TRUE предоставляет сертификат admin.crt для соединения, используется только для протокола **ssl** |
+| api       | **api_53-006.xml** | путь до файла api.xml                                                                                                                             |
 
-## Описание конфига
-- login (required) - логин админа или абонента
-- password (required) - пароль админа или абонента соответственно
-- address (required) - адрес ядра UTM5
-- admin (default: TRUE) - указываем какой пользователь подключается. Если TRUE предоставляет сертификат admin.crt для соединения.
-- port (default: 11758) - порт ядра UTM5
-- timeout (default: 30) - время ожидания ответа от сервера
-- api (default: 'api.xml') - полный путь до файла api.xml
-- log (default: FALSE) - сборщик логов. Если TRUE, перехватывает исключения из URFAClient_API.
+## CMD
+```
+bin/urfaclient -h
+
+The options are as follows:
+   [-a, --api <path> ]             Path to api.xml
+   [-f, --function <name>]         Name function from api.xml
+   [-t, --type <type>]             Type return (array, json, xml), default: array
+   [-l, --list]                    List of functions from api.xml
+   [-h, --help ]                   This help
+   [-v, --version ]                Version URFAClient
+
+```
 
 ## Пример
 Рассмотрим пример использования библиотеки на примере функции rpcf_add_user_new, у нас есть XML описание:
-```
+```xml
 <function name="rpcf_add_user_new" id="0x2125">
     <input>
         <string name="login"/>
@@ -110,105 +110,130 @@ URFAClient 1.0.10
 </function>
 ```
 И так, нам нужно описать входные параметры (элемент input) в ассоциативный массив.
-Если в элементе присутствует атрибут _default_, параметр считается необязательным.
-Со скалярными значениями все просто:
-```
-<integer name="user_id" default="0"/> -> array('user_id' => 1)
-<string name="login"/> -> array('login' => 'test')
-```
-И так далее, порядок параметров неважен.
+Если в элементе присутствует атрибут `default`, параметр считается необязательным.
 
-А вот про циклы расскажу более подробно. Как было замечено, разработчики биллинга не пришли к единому формату описания.
-В нашем примере используется count="size(parameter_value)", в других можно встретить название поля счетчика. Отсюда возникает вопрос, какое имя давать параметру для массива?
-Поэтому было принято решение использовать имя атрибута счетчика в качестве имени для параметра массива. В нашем случае будет так:
+Получаем полное описание параметров функции `rpcf_add_user_new` из api.xml:
+```bash
+bin/urfaclient -f rpcf_add_user_new -t json
 ```
-...
-'parameters_count' => array(
-    array(
-        'parameter_id' => 0,
-        'parameter_value' => 'м',
-    ),
-    array(
-        'parameter_id' => 1,
-        'parameter_value' => '13.06.2014',
-    ),
-),
-'groups_count' => array(
-    array(
-        'groups' => 1000,
-    ),
-    array(
-        'groups' => 1001,
-    ),
-),
-...
+```json
+{
+  "login": "",
+  "password": "",
+  "full_name": "",
+  "is_juridical": 0,
+  "jur_address": "",
+  "act_address": "",
+  "flat_number": "",
+  "entrance": "",
+  "floor": "",
+  "district": "",
+  "building": "",
+  "passport": "",
+  "house_id": 0,
+  "work_tel": "",
+  "home_tel": "",
+  "mob_tel": "",
+  "web_page": "",
+  "icq_number": "",
+  "tax_number": "",
+  "kpp_number": "",
+  "email": "",
+  "bank_id": 0,
+  "bank_account": "",
+  "comments": "",
+  "personal_manager": "",
+  "connect_date": 0,
+  "is_send_invoice": 0,
+  "advance_payment": 0,
+  "switch_id": 0,
+  "port_number": 0,
+  "binded_currency_id": 0,
+  "parameters_count": [
+    {
+      "parameter_id": 0,
+      "parameter_value": ""
+    }
+  ],
+  "groups_count": [
+    {
+      "groups": 0
+    }
+  ],
+  "is_blocked": 0,
+  "balance": 0,
+  "credit": 0,
+  "vat_rate": 0,
+  "sale_tax_rate": 0,
+  "int_status": 0
+}
 ```
-Если попадется элемент error будет выброшено исключение _XML Described error:_, а далее атрибуты ошибки.
+На основе данного описания оставляем необходимые нам параметры, порядок параметров неважен.
 
-C условиями тоже все просто, если истина, то заходим внутрь. И содержание обрабатывается как описано выше.
-
-В итоге получаем минимальный набор параметров для создания пользователя:
+Как было замечено, разработчики UTM5 не пришли к единому формату описания функций. Отсюда возник вопрос, какое имя давать параметру `for` для элементов массива?
+Поэтому было принято решение, в качестве имени использовать имя атрибута счетчика `*_count`. В нашем случае будет так:
+```php
+[
+    // ...
+    'parameters_count' => [
+        [
+            'parameter_id' => 0,
+            'parameter_value' => 'м',
+        ],
+        [
+            'parameter_id' => 1,
+            'parameter_value' => '13.06.2014',
+        ],
+    ],
+    'groups_count' => [
+        [
+            'groups' => 1000,
+        ],
+        [
+            'groups' => 1001,
+        ],
+    ],
+    // ...
+];
 ```
-include 'URFAClient/init.php';
+Если попадется элемент `error` будет выброшено исключение _XML Described error:_, а далее атрибуты ошибки.
 
-$urfa = URFAClient::init(array(
+C условиями `if` все просто, если истина, то заходим внутрь. И содержание обрабатывается, как описано выше.
+
+В итоге, получаем минимальный набор параметров для создания пользователя:
+```php
+require __DIR__ . '/vendor/autoload.php';
+use URFAClient\URFAClient;
+
+$urfa = URFAClient::init([
     'login'    => 'init',
     'password' => 'init',
     'address'  => 'localhost',
-));
+]);
 
-$result = $urfa->rpcf_add_user_new(array(
+$result = $urfa->rpcf_add_user_new([
     'login'=>'test',
     'password'=>'test',
-));
+]);
+
+$result = $urfa->rpcf_add_user_new('{
+  "login": "test2",
+  "password": "test2"
+}');
 ```
-В переменную $result попадут данные которые описаны в элементе output. Более расширенные примеры смотри в example.php.
+В переменную `$result` попадут данные которые описаны в элементе `output`.
+
+## Тесты
+```
+docker-compose up -d
+docker exec -t urfa composer install
+docker exec -t urfa vendor/bin/phpunit --coverage-text
+```
 
 ## Возможные проблемы
-- Тестировалось на версиях биллинга UTM-5.2.1-008-update6 и UTM-5.3-002-update18
+- Тестировалось на версии биллинга UTM-5.3-003, UTM-5.4-004 и UTM-5.5-015
 - Тестировались не все функции из api.xml
 - Не реализована передача типа long для PHP x32
-- При обновлении api.xml обязательно проверяйте используемые функции, в них бывают ошибки.
+- При обновлении api.xml обязательно проверяйте используемые функции
 
-По возникшим проблемам присылайте лог(URFAClient::trace_log()), api.xml и версию биллинговой системы. Удачи!
-
-## История изменений
-
-**v1.0.10**
-- Если данные от ядра биллинговой системы не получены, функции возвращают NULL
-- Обновлен api.xml до версии ядра 5.3-002-update18
-
-**v1.0.9**
-- Входные параметры тега for стали необязательными
-- Исправлено приведение типа при NULL значениях
-
-**v1.0.8**
-- Исправлена ошибка при использовании PHP 5.6 (SSLv3)
-
-**v1.0.7**
-- Исправлена проблема с проверкой сертификата при использовании PHP 5.6
-- Обновлен api.xml до версии ядра 5.3-002-update12
-
-**v1.0.6**
-- Добавлен параметр timeout
-- Добавлено время выполнения функций в логе
-
-**v1.0.5**
-- Преданные аргументы функциям приводятся к нужному типу данных (например для типа integer теперь можно передать строку _array('user_id' => '13')_ )
-- Доработана поддержка получения типа long для PHP x32 x64
-- Доработана поддержка отправки типа long для PHP x64
-
-**v1.0.4**
-- Исправлена ошибка получения отрицательного типа int при использовании PHP x64 и UTM5 x32
-
-**v1.0.3**
-- Обновлен api.xml до версии ядра 5.3-002-update9
-- Исправлена ошибка для типа данных double
-- Доработана поддержка типа данных long в элементе input
-
-**v1.0.2**
-- Поправлена поддержка IPv6
-- Обновлен api.xml до версии ядра 5.3-002-update8
-
-**v1.0.1**
-- Поправлена обработка элемента output
+По возникшим проблемам присылайте api.xml и полную версию ядра UTM5. Удачи!
